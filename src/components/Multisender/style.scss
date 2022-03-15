@@ -1,0 +1,25 @@
+@import "../../styles/variable.scss";
+
+.multisender {
+  width: 100%;
+  min-height: calc(100vh - 221px);
+  justify-content: center;
+
+  &-wrapper {
+    justify-content: center;
+    align-items: center;
+
+    & > div {
+      & > h1 {
+        color: $gray;
+        font-size: 48px;
+        text-align: center;
+        text-transform: uppercase;
+
+        @media (max-width: 768px) {
+          font-size: 32px;
+        }
+      }
+    }
+  }
+}

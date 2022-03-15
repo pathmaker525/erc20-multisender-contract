@@ -610,7 +610,7 @@ contract MultiSender is Ownable {
     require(_receivers.length > 0, "MultiSender: Don't have addresses to send tokens");
 
     for (uint256 i = 0; i < _receivers.length; i++) {
-      TransferHelper.safeTransfer(address(tokenAddressForDistribution), address(_receivers[i]), multiSendingInfo[receiver]);
+      TransferHelper.safeTransfer(address(tokenAddressForDistribution), address(_receivers[i]), multiSendingInfo[_receivers[i]]);
     }
   }
 

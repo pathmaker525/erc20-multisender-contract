@@ -1,4 +1,4 @@
-import { Metamask, WalletConnect } from "resources/Icons"
+import { Metamask } from "resources/Icons"
 
 const ConnectorIds = {
   Injected: "injected",

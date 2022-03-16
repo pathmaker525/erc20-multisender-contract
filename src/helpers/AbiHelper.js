@@ -1,4 +1,4 @@
-import MappyIcoAbi from "configurations/abis/Generated/Presale.json"
+import ERC20Abi from "configurations/abis/Imported/ERC20.json"
 
-// Generated ABIs
-export const getMappyIcoAbi = () => MappyIcoAbi.abi
+// Imported ABIs
+export const getERC20Abi = () => ERC20Abi

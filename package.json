@@ -24,6 +24,7 @@
     "react-modal": "^3.14.4",
     "react-router-dom": "^6.2.2",
     "react-scripts": "5.0.0",
+    "swr": "^1.2.2",
     "truffle-plugin-verify": "^0.5.23",
     "web-vitals": "^2.1.4"
   },

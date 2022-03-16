@@ -562,7 +562,7 @@ contract MultiSender is Ownable {
    * @param receivers_ Address list to receive token specified by the address
    * @param amounts_ Token amounts to be sent to each addresses
    */
-  function multiSendTokensFromWalletAt(address tokenAddress_, address[] memory receivers_, uint256[] memory amounts_) public {
+  function multiSendTokensFromWalletAt(address tokenAddress_, address[] memory receivers_, uint256[] memory amounts_) public payable {
     require(_msgValue() > _serviceFee, "MultiSender: Must pay appropreate fee");
     require(tokenAddress_ != address(0), "MultiSender: Address can't be zero address");
     require(tokenAddress_ != address(this), "MultiSender: Can't set as self address");
@@ -581,6 +581,8 @@ contract MultiSender is Ownable {
       TransferHelper.safeTransferFrom(address(tokenAddressForDistribution), address(_msgSender()), address(receivers_[i]), amounts_[i]);
     }
   }
+
+
 
   function addReceiver(address to_, uint256 amount_) public onlyOwner {
     require(to_ != address(0), "MultiSender: Can't send to zero address");
@@ -653,4 +655,6 @@ contract MultiSender is Ownable {
       uint256 tokenBalance = IERC20(token_).balanceOf(address(this));
       IERC20(token_).transfer(to_, tokenBalance);
   }
+
+  receive() external payable {}
 }

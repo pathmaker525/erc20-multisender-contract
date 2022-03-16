@@ -2,24 +2,115 @@
 
 .multisender {
   width: 100%;
-  min-height: calc(100vh - 221px);
+  min-height: calc(100vh - 228px);
   justify-content: center;
 
   &-wrapper {
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    margin-top: 64px;
+    padding: 48px 0 128px;
 
     & > div {
-      & > h1 {
-        color: $gray;
-        font-size: 48px;
-        text-align: center;
-        text-transform: uppercase;
+      display: flex;
+      width: 100%;
+      justify-content: center;
 
-        @media (max-width: 768px) {
-          font-size: 32px;
-        }
+      & > h1 {
+        color: $yellow !important;
+        text-align: center;
       }
     }
   }
+
+  &-main {
+    width: 100%;
+    max-width: 640px;
+    grid-row-gap: 16px;
+
+    & > div {
+      width: 100%;
+      align-items: center;
+    }
+
+    &-settings {
+      width: 100%;
+      grid-template: auto / 1fr 1fr;
+      grid-column-gap: 16px;
+      grid-row-gap: 4px;
+
+      & > span {
+        font-size: 14px;
+        color: $gray;
+
+        @media (max-width: 768px) {
+          font-size: 12px;
+        }
+
+        &:nth-child(2) {
+          justify-self: flex-end;
+        }
+      }
+
+      & > input {
+        width: 100%;
+        padding: 8px 12px;
+        color: $white;
+        background-color: $black;
+        grid-column-start: 1;
+        grid-column-end: 3;
+      }
+    }
+
+    &-editor {
+      width: 100%;
+      grid-template: auto / 1fr 1fr;
+      grid-column-gap: 16px;
+      grid-row-gap: 4px;
+
+      & > span {
+        font-size: 14px;
+        color: $gray;
+
+        @media (max-width: 768px) {
+          font-size: 12px;
+        }
+
+        &:nth-child(2) {
+          justify-self: flex-end;
+        }
+      }
+
+      & > input {
+        margin: 4px 0 0 0;
+      }
+
+      &-main {
+        width: 100%;
+        font-size: 12px;
+        overflow: hidden;
+        grid-column-start: 1;
+        grid-column-end: 3;
+      }
+    }
+  }
+}
+
+.cm {
+  &-gutters {
+    width: 48px;
+  }
+
+  &-lineNumbers {
+    min-width: 42px;
+  }
+
+  &-activeLine {
+    background-color: transparent !important;
+  }
+}
+
+.ͼo {
+  color: $gray;
+  background-color: $black;
 }

@@ -15,9 +15,12 @@ const Navbar = () => {
           <div className="navbar-logo">
             <img src={Logo} alt="logo" />
           </div>
-          <div className="navbar-anchors">
+          <div className="navbar-anchors flex">
             <a className="flex" href="https://safutrendz.com">
               Home
+            </a>
+            <a className="flex" href="https://presale.safutrendz.com">
+              Presale
             </a>
           </div>
         </div>

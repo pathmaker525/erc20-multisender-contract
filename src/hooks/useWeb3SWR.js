@@ -5,6 +5,9 @@ import useActiveWeb3React from "./useActiveWeb3React"
 import { getProviderOrSigner } from "utils/index"
 
 import { getERC20Abi } from "helpers/AbiHelper"
+import { bscContracts } from "configurations/Constants/Contracts"
+
+const chainId = parseInt(process.env.REACT_APP_CHAIN_ID, 10)
 
 const balanceFetcher =
   (library, abi) =>
@@ -61,4 +64,32 @@ export const useWeb3SwrMetadata = (address) => {
   )
 
   return { name, nameMutate, symbol, symbolMutate, decimals, decimalsMutate }
+}
+
+const allowanceFetcher =
+  (library, abi) =>
+  async (...args) => {
+    const [address, method, account, ...params] = args
+
+    const contract = new Contract(address, abi, getProviderOrSigner(library))
+
+    return contract[method](
+      account,
+      bscContracts.MULTISENDER[chainId].address,
+      ...params
+    )
+  }
+
+export const useWeb3SwrAllowance = (address) => {
+  const { library, account } = useActiveWeb3React()
+  const abi = getERC20Abi()
+
+  const { data: allowance, mutate: allowanceMutate } = useSWR(
+    [address, "allowance", account],
+    {
+      fetcher: allowanceFetcher(library, abi),
+    }
+  )
+
+  return { allowance, allowanceMutate }
 }

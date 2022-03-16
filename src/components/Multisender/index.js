@@ -9,14 +9,17 @@ import WalletButton from "components/WalletButton"
 import "./style.scss"
 
 const MultiSender = ({
+  txStatus,
   account,
   symbol,
   decimals,
   balance,
+  allowance,
   fetchingTokenInfo,
-  reArrangeMultiSendList,
   onChangeTokenAddress,
   onChangeCodeMirrorHandler,
+  onApproveToken,
+  onCallMultiSendTransaction,
 }) => {
   const editor = useRef()
   const { setContainer } = useCodeMirror({
@@ -77,13 +80,19 @@ const MultiSender = ({
             ) : (
               <button
                 onClick={
-                  decimals >= 0 && fetchingTokenInfo !== true
-                    ? reArrangeMultiSendList
+                  txStatus === "pending"
+                    ? () => {}
+                    : decimals >= 0 && fetchingTokenInfo !== true
+                    ? BigNumber.from(allowance).toString() !== 0
+                      ? onCallMultiSendTransaction
+                      : onApproveToken
                     : () => {}
                 }
               >
                 {decimals >= 0 && fetchingTokenInfo !== true
-                  ? "Approve Token"
+                  ? BigNumber.from(allowance).toString() !== 0
+                    ? "Send Tokens"
+                    : "Approve Token"
                   : "Checking..."}
               </button>
             )}

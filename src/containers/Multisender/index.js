@@ -2,13 +2,20 @@ import { useState, useEffect } from "react"
 import { BigNumber } from "ethers"
 import { isAddress } from "ethers/lib/utils"
 import { useWeb3React } from "@web3-react/core"
+import { useAlert } from "react-alert"
 
 import MultiSenderComponent from "components/Multisender"
 
-import { useWeb3SwrBalance, useWeb3SwrMetadata } from "hooks/useWeb3SWR"
-import { mutate } from "swr"
+import {
+  useWeb3SwrBalance,
+  useWeb3SwrMetadata,
+  useWeb3SwrAllowance,
+} from "hooks/useWeb3SWR"
+import { approveToken } from "utils/GetERC20Contract"
 
 const MultiSender = () => {
+  const alert = useAlert()
+
   const { account, library } = useWeb3React()
 
   const [multisendTokenAddress, setMultisendTokenAddress] = useState("")
@@ -19,10 +26,16 @@ const MultiSender = () => {
 
   const [errorInTokenAddress, setErrorInTokenAddress] = useState(false)
   const [errorInMultiSendData, setErrorInMultiSendData] = useState(false)
+  const [errorEmptyData, setErrorEmptyData] = useState(false)
 
-  const { balance } = useWeb3SwrBalance(multisendTokenAddress)
+  const [txStatus, setTxStatus] = useState("")
+
+  const { balance, mutate } = useWeb3SwrBalance(multisendTokenAddress)
   const { name, nameMutate, symbol, symbolMutate, decimals, decimalsMutate } =
     useWeb3SwrMetadata(multisendTokenAddress)
+  const { allowance, allowanceMutate } = useWeb3SwrAllowance(
+    multisendTokenAddress
+  )
 
   useEffect(() => {
     if (library) {
@@ -32,6 +45,7 @@ const MultiSender = () => {
         nameMutate(undefined, true)
         symbolMutate(undefined, true)
         decimalsMutate(undefined, true)
+        allowanceMutate(undefined, true)
       })
     }
 
@@ -43,20 +57,32 @@ const MultiSender = () => {
       name !== undefined &&
       symbol !== undefined &&
       decimals !== undefined &&
-      balance !== undefined
+      balance !== undefined &&
+      allowance !== undefined
     ) {
       setFetchingTokenInfo(false)
     } else if (
       name === undefined &&
       symbol === undefined &&
       decimals === undefined &&
-      balance === undefined
+      balance === undefined &&
+      allowance === undefined
     ) {
       setFetchingTokenInfo(false)
     } else {
       setFetchingTokenInfo(true)
     }
-  }, [name, symbol, decimals, balance])
+  }, [name, symbol, decimals, balance, allowance])
+
+  const onApproveToken = async () => {
+    await approveToken(
+      library,
+      multisendTokenAddress,
+      alertInfo,
+      alertSuccess,
+      alertError
+    )
+  }
 
   const onChangeTokenAddress = (e) => {
     const tokenAddress = e.target.value + ""
@@ -99,7 +125,12 @@ const MultiSender = () => {
       }
     }
 
-    console.log(multisendData, errorInTokenAddress, errorInMultiSendData)
+    if (addressList.length > 0) {
+      setErrorEmptyData(false)
+    } else {
+      setErrorEmptyData(true)
+    }
+
     if (errorInMultiSendData !== true) {
       setMultisendData({ addressList, amountList })
     } else {
@@ -107,18 +138,63 @@ const MultiSender = () => {
     }
   }
 
-  console.log(name, symbol, decimals, balance, fetchingTokenInfo)
+  const onCallMultiSendTransaction = () => {
+    reArrangeMultiSendList()
+
+    if (errorInTokenAddress) {
+      alertError("Please put token address to send.")
+    }
+    if (errorInMultiSendData) {
+      alertError("Please check multi send data. There are errors in data set.")
+    }
+    if (errorEmptyData) {
+      alertError("No information for multi send.")
+    }
+  }
+
+  const alertInfo = (message) =>
+    alert.info(message, {
+      onOpen: () => {
+        setTxStatus("Pending")
+      },
+    })
+
+  const alertSuccess = (message) =>
+    alert.success(message, {
+      onOpen: () => {
+        setTxStatus("Success")
+      },
+    })
+
+  const alertError = (message) =>
+    alert.error(message, {
+      onOpen: () => {
+        setTxStatus("Error")
+      },
+    })
+
+  console.log(
+    name,
+    symbol,
+    decimals,
+    balance,
+    fetchingTokenInfo,
+    allowance !== undefined && BigNumber.from(allowance).toString()
+  )
 
   return (
     <MultiSenderComponent
+      txStatus={txStatus}
       account={account}
       symbol={symbol}
       decimals={decimals}
       balance={balance}
+      allowance={allowance}
       fetchingTokenInfo={fetchingTokenInfo}
-      reArrangeMultiSendList={reArrangeMultiSendList}
       onChangeTokenAddress={onChangeTokenAddress}
       onChangeCodeMirrorHandler={onChangeCodeMirrorHandler}
+      onApproveToken={onApproveToken}
+      onCallMultiSendTransaction={onCallMultiSendTransaction}
     />
   )
 }

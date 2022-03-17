@@ -91,7 +91,7 @@
     ],
     "name": "multiSendTokensFromWalletAt",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -183,5 +183,6 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
-  }
+  },
+  { "stateMutability": "payable", "type": "receive" }
 ]

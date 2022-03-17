@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { BigNumber } from "ethers"
-import { isAddress } from "ethers/lib/utils"
+import { BigNumber, constants } from "ethers"
+import { isAddress, parseUnits } from "ethers/lib/utils"
 import { useWeb3React } from "@web3-react/core"
 import { useAlert } from "react-alert"
 
@@ -12,6 +12,7 @@ import {
   useWeb3SwrAllowance,
 } from "hooks/useWeb3SWR"
 import { approveToken } from "utils/GetERC20Contract"
+import { callMultiSend } from "utils/GetMultisendContract"
 
 const MultiSender = () => {
   const alert = useAlert()
@@ -21,6 +22,8 @@ const MultiSender = () => {
   const [multisendTokenAddress, setMultisendTokenAddress] = useState("")
   const [multsendList, setMultisendList] = useState([])
   const [multisendData, setMultisendData] = useState({})
+
+  const [multisendDataValidated, setMultisendDataValidated] = useState(false)
 
   const [fetchingTokenInfo, setFetchingTokenInfo] = useState(false)
 
@@ -68,7 +71,7 @@ const MultiSender = () => {
       balance === undefined &&
       allowance === undefined
     ) {
-      setFetchingTokenInfo(false)
+      setFetchingTokenInfo(true)
     } else {
       setFetchingTokenInfo(true)
     }
@@ -85,7 +88,7 @@ const MultiSender = () => {
   }
 
   const onChangeTokenAddress = (e) => {
-    const tokenAddress = e.target.value + ""
+    const tokenAddress = e.target.value
 
     if (isAddress(tokenAddress) === true) {
       setErrorInTokenAddress(false)
@@ -98,13 +101,19 @@ const MultiSender = () => {
 
   const onChangeCodeMirrorHandler = (value) => {
     const rawText = value
-    const multisendDataList = rawText.split("\n")
+    const multisendDataList = rawText.replace(" ", "").split("\n")
 
+    setMultisendDataValidated(false)
     setMultisendList(multisendDataList)
   }
 
   const reArrangeMultiSendList = () => {
-    setErrorInMultiSendData(false)
+    let emptyDataError = false
+    let multisendDataError = false
+    let emptyAddressError = errorInTokenAddress
+
+    setErrorInMultiSendData(emptyDataError)
+    setMultisendDataValidated(multisendDataError)
 
     const arrayLength = multsendList.length
 
@@ -117,11 +126,16 @@ const MultiSender = () => {
 
       if (isAddress(address) === true && isNaN(Number(amount)) === false) {
         addressList.push(address)
-        amountList.push(
-          BigNumber.from(parseInt(amount * 10 ** decimals)).toHexString()
-        )
+        try {
+          amountList.push(parseUnits(amount, decimals).toString())
+        } catch {
+          setErrorInMultiSendData(true)
+          multisendDataError = true
+          amountList.push("0")
+        }
       } else {
         setErrorInMultiSendData(true)
+        multisendDataError = true
       }
     }
 
@@ -129,27 +143,53 @@ const MultiSender = () => {
       setErrorEmptyData(false)
     } else {
       setErrorEmptyData(true)
+      emptyDataError = true
     }
 
-    if (errorInMultiSendData !== true) {
+    if (multisendDataError !== true && emptyDataError !== true) {
+      setMultisendDataValidated(true)
       setMultisendData({ addressList, amountList })
     } else {
+      setMultisendDataValidated(false)
       setMultisendData({ addressList: [], amountList: [] })
     }
+
+    onValidateMultisendData(
+      emptyAddressError,
+      multisendDataError,
+      emptyDataError
+    )
+  }
+
+  const onValidateMultisendData = (
+    emptyAddressError = false,
+    multisendDataError = false,
+    emptyDataError = false
+  ) => {
+    if (emptyAddressError || errorInTokenAddress) {
+      alertError("Please put token address to send.")
+    }
+    if (multisendDataError) {
+      alertError("Please check multi send data. There are errors in data set.")
+    }
+    if (emptyDataError) {
+      alertError("No information for multi send.")
+    }
+
+    callMultiSend()
   }
 
   const onCallMultiSendTransaction = () => {
-    reArrangeMultiSendList()
-
-    if (errorInTokenAddress) {
-      alertError("Please put token address to send.")
-    }
-    if (errorInMultiSendData) {
-      alertError("Please check multi send data. There are errors in data set.")
-    }
-    if (errorEmptyData) {
-      alertError("No information for multi send.")
-    }
+    callMultiSend(
+      library,
+      account,
+      multisendTokenAddress,
+      multisendData.addressList,
+      multisendData.amountList,
+      alertInfo,
+      alertSuccess,
+      alertError
+    )
   }
 
   const alertInfo = (message) =>
@@ -179,7 +219,9 @@ const MultiSender = () => {
     decimals,
     balance,
     fetchingTokenInfo,
-    allowance !== undefined && BigNumber.from(allowance).toString()
+    multisendDataValidated,
+    multisendData,
+    errorInTokenAddress
   )
 
   return (
@@ -190,7 +232,9 @@ const MultiSender = () => {
       decimals={decimals}
       balance={balance}
       allowance={allowance}
+      multisendDataValidated={multisendDataValidated}
       fetchingTokenInfo={fetchingTokenInfo}
+      reArrangeMultiSendList={reArrangeMultiSendList}
       onChangeTokenAddress={onChangeTokenAddress}
       onChangeCodeMirrorHandler={onChangeCodeMirrorHandler}
       onApproveToken={onApproveToken}

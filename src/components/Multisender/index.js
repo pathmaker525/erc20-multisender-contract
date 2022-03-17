@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { BigNumber } from "ethers"
+import { BigNumber, constants } from "ethers"
 import { useCodeMirror } from "@uiw/react-codemirror"
 import FadeIn from "react-fade-in/lib/FadeIn"
 import { IoSearchOutline, IoSyncOutline } from "react-icons/io5"
@@ -15,7 +15,9 @@ const MultiSender = ({
   decimals,
   balance,
   allowance,
+  multisendDataValidated,
   fetchingTokenInfo,
+  reArrangeMultiSendList,
   onChangeTokenAddress,
   onChangeCodeMirrorHandler,
   onApproveToken,
@@ -82,15 +84,21 @@ const MultiSender = ({
                 onClick={
                   txStatus === "pending"
                     ? () => {}
-                    : decimals >= 0 && fetchingTokenInfo !== true
-                    ? BigNumber.from(allowance).toString() !== 0
+                    : decimals >= 0 && fetchingTokenInfo === false
+                    ? multisendDataValidated === false
+                      ? reArrangeMultiSendList
+                      : BigNumber.from(allowance).toString() ===
+                        BigNumber.from(constants.MaxUint256).toString()
                       ? onCallMultiSendTransaction
                       : onApproveToken
                     : () => {}
                 }
               >
-                {decimals >= 0 && fetchingTokenInfo !== true
-                  ? BigNumber.from(allowance).toString() !== 0
+                {decimals >= 0 && fetchingTokenInfo === false
+                  ? multisendDataValidated === false
+                    ? "Next"
+                    : BigNumber.from(allowance).toString() ===
+                      BigNumber.from(constants.MaxUint256).toString()
                     ? "Send Tokens"
                     : "Approve Token"
                   : "Checking..."}
